@@ -47,6 +47,6 @@ mkdir(proj_fold_name)
 
 % optional 
 % create a folder in processing directory for this subject
-cd('/home/LabAst/Documents/SpectraProcessing/AABCProcessing') % my personal processing directory
+cd('/Users/mia/Desktop') % my personal processing directory
 ID = dicom.PatientID;
 mkdir(ID)
