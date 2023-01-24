@@ -11,6 +11,9 @@ fold = dir(selpath); % adds "." and ".." non-directories to the beginning...
 for i = 3:length(fold) % starting at 3 due to "." and ".."
     name = fold(i).name; % current name of folder
     subpath = append(selpath, '/', name, '/DICOM'); % respective dicom path for this folder
+    if ~exist(subpath, 'dir')
+        subpath = append(selpath, '/', name, '/secondary'); % for the odd case of secondary folder instead of DICOM
+    end 
 
     % function to get dicom information 
     dicom = checkDICOM(subpath);
@@ -47,6 +50,6 @@ mkdir(proj_fold_name)
 
 % optional 
 % create a folder in processing directory for this subject
-cd('/Users/mia/Desktop') % my personal processing directory
-ID = dicom.PatientID;
-mkdir(ID)
+% cd('/home/LabAst/Documents/SpectraProcessing/AABCProcessing') % my personal processing directory
+% ID = dicom.PatientID;
+% mkdir(ID)
