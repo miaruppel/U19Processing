@@ -6,12 +6,26 @@
 % choose LCModel ouput directory 
 selpath = uigetdir;
 
+% need 'dicom' variable from ExtractDicomInfo scripts for some of these...
+split_path = split(selpath, '/');
+ID = split_path(end); % extract ID from path 
+
+dicom_path = append('/home/LabAst/Downloads/AABC_UMN/', char(ID), '/SCANS/1_localizer/DICOM');
+if ~exist(dicom_path, 'dir')
+    dicom_path = append('/home/LabAst/Downloads/AABC_UMN/', char(ID), '/SCANS/1_localizer/secondary');
+end 
+dicom = checkDICOM(dicom_path);
+
 % concentrations (.conc file)
-% convert to text file first ???
-conc_table = readtable('HCA6007044_V3_7T.txt'); % last 7 rows are NaN values 
+% convert to text file first
+conc_file = append(char(ID), '.conc');
+txt_file = append(char(ID), '.txt');
+copyfile(conc_file, txt_file)
+
+conc_table = readtable(txt_file); % last 7 rows are NaN values 
 
 % to get all metabolites 
-for i = 1:30 % loop through all 30 rows
+for i = 1:30 % loop through all 30 (non-NaN) rows
     metab_tab = conc_table(i, 4); % metabolites are always in the 4th column 
     metab_cell = table2cell(metab_tab); % convert to cell format
     
@@ -133,16 +147,7 @@ for i = 1:30 % loop through all 30 rows
     end
 end 
 
-% all other variables to include - NOT FINISHED 
-% need 'dicom' variable from ExtractDicomInfo scripts for some of these...
-split_path = split(selpath, '/');
-ID = split_path(end); % extract ID from path 
-
-dicom_path = append('/home/LabAst/Downloads/AABC_UMN/', char(ID), '/SCANS/1_localizer/DICOM');
-if ~exist(dicom_path, 'dir')
-    dicom_path = append('/home/LabAst/Downloads/AABC_UMN/', char(ID), '/SCANS/1_localizer/secondary');
-end 
-dicom = checkDICOM(dicom_path);
+% all other variables to include - NOT FINISHED
 
 % information from dicom header
 age_str = dicom.PatientAge;
@@ -182,9 +187,11 @@ elseif exist('MacE', 'var')
 end 
 
 % convert table to .csv
+% directory to save spreadsheet
+cd('/home/LabAst/Documents/SpectraProcessing/AABCProcessing')
 % initial file generation - run once, then comment out 
-writetable(t, 'U19_spreadsheet.csv', 'WriteRowNames', true)
+%writetable(t, 'U19_spreadsheet.csv', 'WriteRowNames', true)
 
 % to append file 
-%writetable(t,'U19_spreadsheet.csv','WriteMode','Append',...
-%'WriteVariableNames',false,'WriteRowNames',true)
+writetable(t,'U19_spreadsheet.csv','WriteMode','Append',...
+'WriteVariableNames',false,'WriteRowNames',true)
