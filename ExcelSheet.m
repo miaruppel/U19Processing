@@ -18,6 +18,7 @@ dicom = checkDICOM(dicom_path);
 
 % concentrations (.conc file)
 % convert to text file first
+cd(selpath)
 conc_file = append(char(ID), '.conc');
 txt_file = append(char(ID), '.txt');
 copyfile(conc_file, txt_file)
@@ -165,9 +166,39 @@ else
 end
 Project_Name = {proj_name};
 
+Gender = {dicom.PatientSex};
+
+% information from .COORD file - FWHM and SNR
+% first, convert to .txt
+coord_file = append(char(ID), '.COORD');
+coord_txt_file = append(char(ID), '_COORD', '.txt');
+copyfile(coord_file, coord_txt_file)
+
+coord = fopen(coord_txt_file);
+linenum = 37; % line where FWHM and SNR are located **USUALLY
+line = textscan(coord, '%s', 1, 'delimiter', '\n', 'headerlines', linenum-1);
+fclose('all');
+
+% extract values 
+% makenig sure we have the correct line..there have been oddball cases 
+if startsWith(char(line{1,1}), 'FWHM')
+    str_split = strsplit(char(line{1,1}), ' ');
+    FWHM = str_split(3);
+    SNR = str_split(7);
+elseif startsWith(char(line{1,1}), 'Data')
+    coord = fopen(coord_txt_file);
+    linenum = 36; % line where FWHM and SNR are located in this case
+    line = textscan(coord, '%s', 1, 'delimiter', '\n', 'headerlines', linenum-1);
+    fclose('all');
+
+    str_split = strsplit(char(line{1,1}), ' ');
+    FWHM = str_split(3);
+    SNR = str_split(7);
+end 
+
 % put variables into table (row)
 if exist('MacY', 'var')
-    t = table(Patient_ID, Age, Category, Project_Name, MacY, CRLB1, Asc, ...
+    t = table(Patient_ID, Age, Gender, Category, Project_Name, FWHM, SNR, MacY, CRLB1, Asc, ...
     CRLB2, Asp, CRLB3, PCho, CRLB4, GPC, CRLB5, Cr, CRLB6, ...
     PCr, CRLB7, GABA, CRLB8, Glc, CRLB9, Gln, CRLB10, Glu, ...
     CRLB11, GSH, CRLB12, Ins, CRLB13, Lac, CRLB14, NAA, ...
@@ -176,7 +207,7 @@ if exist('MacY', 'var')
     CRLB23, Cr_plus_PCr, CRLB24, Glc_plus_Tau, CRLB25, GPC_plus_PCho_plus_PE, ...
     CRLB26);
 elseif exist('MacE', 'var')
-    t = table(Patient_ID, Age, Category, Project_Name, MacE, CRLB1, Asc, ...
+    t = table(Patient_ID, Age, Gender, Category, Project_Name, FWHM, SNR, MacE, CRLB1, Asc, ...
     CRLB2, Asp, CRLB3, PCho, CRLB4, GPC, CRLB5, Cr, CRLB6, ...
     PCr, CRLB7, GABA, CRLB8, Glc, CRLB9, Gln, CRLB10, Glu, ...
     CRLB11, GSH, CRLB12, Ins, CRLB13, Lac, CRLB14, NAA, ...
