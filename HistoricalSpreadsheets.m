@@ -4,16 +4,66 @@
 % choose directory with LCModel outputs
 selpath = uigetdir;
 files = dir(selpath); % fist 'files' are again '.' and '..'
+split_selpath = strsplit(selpath, '/');
 
-for i = 3:length(files)-1 % don't need to look over batch folder 
+% because directories are organized differently, different processes...
+% MN_Aging_AD data 
+
+for i = 3:length(files)-1 % don't need to look over extra/batch folder 
     file_name = files(i).name;
     [filepath, name, ext] = fileparts(file_name);
     name_split = strsplit(name, '_'); % obtain ID from file name
 
+    % MN_Aging_AD and MN_BCP have differnt directory structure...
     if strcmp(ext, '.conc') % check file extension 
-        prefix = char(name_split(5)); % to disguish between AD, elderly, and young
-        ID = char(name_split(6)); % index for ID number
-        Patient_ID = append(prefix, ID);
+        if strcmp(char(split_selpath(6)), 'MN_Aging_AD') 
+            % how to obtain patient ID from MN_Aging_AD data:
+            prefix = char(name_split(5)); % to disguish between AD, elderly, and young
+            ID = char(name_split(6)); % index for ID number
+            
+            if length(name_split) == 12
+               suffix = char(name_split(7));
+               Patient_ID = append(prefix, ID, suffix); % more complex names, e.g., C015A
+            else 
+               Patient_ID = append(prefix, ID);
+            end 
+
+        elseif strcmp(char(split_selpath(6)), 'MN_BCP')
+            % how to obtain patient ID from MN_BCP data:
+            
+            % naming conventions between files vary quite a bit here...
+            if length(name_split) == 15 
+                prefix = char(name_split(8));
+                ID = char(name_split(9));
+                if strcmp(char(name_split(10)), 'steam') % checking for special names with suffixes
+                    Patient_ID = append(prefix, ID);
+                else 
+                    suffix = char(name_split(10));
+                    Patient_ID = append(prefix, ID, suffix);
+                end
+     
+            elseif length(name_split) == 11
+                 prefix = char(name_split(6));
+                 ID = char(name_split(7));
+
+                 if strcmp(char(name_split(8)), 'steam') % special names with suffixes
+                    Patient_ID = append(prefix, ID);
+                 else 
+                    suffix = char(name_split(8));
+                    Patient_ID = append(prefix, ID, suffix);
+                 end
+            else % lengths of 13 and 14
+                prefix = char(name_split(7));
+                ID = char(name_split(8));
+
+                if strcmp(char(name_split(9)), 'steam') % special names with suffixes
+                    Patient_ID = append(prefix, ID);
+                else 
+                    suffix = char(name_split(9));
+                    Patient_ID = append(prefix, ID, suffix);
+                end
+            end
+        end 
 
         cd(selpath)
         conc_file = append(name, '.conc');
@@ -145,32 +195,43 @@ for i = 3:length(files)-1 % don't need to look over batch folder
             end
         end 
 
-        % other information from dicom header...
-        split_path = strsplit(selpath, '/');
-        cohort = char(split_path(7));
+        % other information from dicom header..
+        cohort = char(split_selpath(7));
     
         % start with getting the right path
-        if startsWith(cohort, 'AD') % aim 2
-           if startsWith(Patient_ID, 'A') % AD participants
-              newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_Aging_AD/aim2AD/';
-           else % controls
-               newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_Aging_AD/aim2control/';
-           end
-        elseif startsWith(cohort, 'Aging') % aim 1
-            if startsWith(Patient_ID, 'E') % elderly
-                newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_Aging_AD/aim1elderly/';
-            else % young
-                newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_Aging_AD/aim1young/';
+        % for MN_Aging_AD data:
+        if strcmp(char(split_selpath(6)), 'MN_Aging_AD')
+            if startsWith(cohort, 'AD') % aim 2
+               if startsWith(Patient_ID, 'A') % AD participants
+                  newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_Aging_AD/aim2AD/';
+               else % controls
+                   newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_Aging_AD/aim2control/';
+               end
+            elseif startsWith(cohort, 'Aging') % aim 1
+                if startsWith(Patient_ID, 'E') % elderly
+                    newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_Aging_AD/aim1elderly/';
+                else % young
+                    newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_Aging_AD/aim1young/';
+                end 
+            end 
+        % for MN_BCP data    
+        elseif strcmp(char(split_selpath(6)), 'MN_BCP')
+            if startsWith(cohort, 'BCP_O') % elderly
+                newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_BCP/Subjects_Elderly/';
+            elseif startsWith(cohort, 'BCP_Y') % young
+                newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_BCP/Subjects_Young/';
+            elseif startsWith(cohort, 'AD') % AD
+                newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_BCP/Subjects_AD/';
             end 
         end 
-    
+
         cd(newpath)
         % now that we are in the right place, match the patient ID with the
         % folder name to obtain the right .dcm files
         patient_folder = append(newpath, Patient_ID);
     
         subfolders = dir(patient_folder);
-        if length(subfolders) > 3 % folders that contain original data (from scanner)
+        if length(subfolders) >= 3 % folders that contain original data (from scanner)
             first_subfolder = subfolders(3).name; % first real folder in directory (usually metab_RES)
             
             dicom_path = append(patient_folder, '/', first_subfolder);
@@ -275,4 +336,6 @@ for i = 3:length(files)-1 % don't need to look over batch folder
         end 
     end 
     end 
- end 
+end 
+
+
