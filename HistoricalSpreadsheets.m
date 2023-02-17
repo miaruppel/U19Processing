@@ -21,7 +21,7 @@ for i = 3:length(files)-1 % don't need to look over extra/batch folder
             prefix = char(name_split(5)); % to disguish between AD, elderly, and young
             ID = char(name_split(6)); % index for ID number
             
-            if length(name_split) == 12
+            if length(name_split) == 11
                suffix = char(name_split(7));
                Patient_ID = append(prefix, ID, suffix); % more complex names, e.g., C015A
             else 
@@ -52,7 +52,7 @@ for i = 3:length(files)-1 % don't need to look over extra/batch folder
                     suffix = char(name_split(8));
                     Patient_ID = append(prefix, ID, suffix);
                  end
-            else % lengths of 13 and 14
+            elseif length(name_split) == 13 || length(name_split) == 14
                 prefix = char(name_split(7));
                 ID = char(name_split(8));
 
@@ -62,6 +62,8 @@ for i = 3:length(files)-1 % don't need to look over extra/batch folder
                     suffix = char(name_split(9));
                     Patient_ID = append(prefix, ID, suffix);
                 end
+            elseif length(name_split) == 6 % the one special MN_AD case
+                   Patient_ID = char(name_split(1));
             end
         end 
 
@@ -229,8 +231,15 @@ for i = 3:length(files)-1 % don't need to look over extra/batch folder
         % now that we are in the right place, match the patient ID with the
         % folder name to obtain the right .dcm files
         patient_folder = append(newpath, Patient_ID);
-    
         subfolders = dir(patient_folder);
+
+        % compensating for names such as RET165RT7T or RET050R2
+        if isempty(subfolders) && exist('suffix', 'var')
+            Patient_ID2 = append(prefix, ID);
+            patient_folder = append(newpath, Patient_ID2);
+            subfolders = dir(patient_folder);
+        end 
+
         if length(subfolders) >= 3 % folders that contain original data (from scanner)
             first_subfolder = subfolders(3).name; % first real folder in directory (usually metab_RES)
             
@@ -320,7 +329,7 @@ for i = 3:length(files)-1 % don't need to look over extra/batch folder
  
     % convert table to .csv
     % directory to save spreadsheet
-    if ~exist('prefix', 'var') % first variable created when .conc file exists
+    if ~exist('Patient_ID', 'var') % one of the first variables created when .conc file exists
         % do nothing if the file did not go thru loop 
     else
         cd('/home/LabAst/Desktop/Data_4Thesis/')
