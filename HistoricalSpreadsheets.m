@@ -21,11 +21,24 @@ for i = 3:length(files)-1 % don't need to look over extra/batch folder
             prefix = char(name_split(5)); % to disguish between AD, elderly, and young
             ID = char(name_split(6)); % index for ID number
             
-            if length(name_split) == 11
-               suffix = char(name_split(7));
-               Patient_ID = append(prefix, ID, suffix); % more complex names, e.g., C015A
-            else 
-               Patient_ID = append(prefix, ID);
+            % for aim 2 - AD vs controls
+            if strcmp(char(split_selpath(7)), 'AD_A_PCC') || strcmp(char(split_selpath(7)), 'AD_A_OCC')...
+                    || strcmp(char(split_selpath(7)), 'AD_C_PCC') || strcmp(char(split_selpath(7)), 'AD_A_OCC')
+                if length(name_split) == 11
+                    Patient_ID = append(prefix, ID);
+                else 
+                    suffix = char(name_split(7));
+                    Patient_ID = append(prefix, ID, suffix); % more complex names, e.g., C015A
+                end 
+            % for aim 1 - eldery vs young adults 
+            elseif strcmp(char(split_selpath(7)), 'Aging_E_PCC') || strcmp(char(split_selpath(7)), 'Aging_E_OCC')...
+                    || strcmp(char(split_selpath(7)), 'Aging_Y_PCC') || strcmp(char(split_selpath(7)), 'Aging_Y_OCC')
+                if length(name_split) == 10 
+                    Patient_ID = append(prefix, ID);
+                else 
+                    suffix = char(name_split(7));
+                    Patient_ID = append(prefix, ID, suffix);
+                end 
             end 
 
         elseif strcmp(char(split_selpath(6)), 'MN_BCP')
@@ -222,7 +235,7 @@ for i = 3:length(files)-1 % don't need to look over extra/batch folder
                 newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_BCP/Subjects_Elderly/';
             elseif startsWith(cohort, 'BCP_Y') % young
                 newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_BCP/Subjects_Young/';
-            elseif startsWith(cohort, 'AD') % AD
+            elseif startsWith(cohort, 'MN_') || startsWith(cohort, 'MO_')% AD
                 newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_BCP/Subjects_AD/';
             end 
         end 
