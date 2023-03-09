@@ -12,9 +12,9 @@ for i = (selpath) % loop through all folders (if multiple are chosen)
     split_path = split(path, '/');
     ID = split_path(end); % extract ID from path 
     
-    dicom_path = append('/home/LabAst/Downloads/AABC_UMN/', char(ID), '/SCANS/1_localizer/DICOM');
+    dicom_path = append('/home/LabAst/Documents/AABCProcessing/S3_scanner_files/', char(ID), '/SCANS/1_localizer/DICOM');
     if ~exist(dicom_path, 'dir')
-        dicom_path = append('/home/LabAst/Downloads/AABC_UMN/', char(ID), '/SCANS/1_localizer/secondary');
+        dicom_path = append('/home/LabAst/Documents/AABCProcessing/S3_scanner_files/', char(ID), '/SCANS/1_localizer/secondary');
     end 
     dicom = checkDICOM(dicom_path);
     
@@ -22,7 +22,7 @@ for i = (selpath) % loop through all folders (if multiple are chosen)
     % convert to text file first
     cd(path)
     conc_file = append(char(ID), '.conc');
-    txt_file = append(char(ID), '.txt');
+    txt_file = append(char(ID), '_conc.txt');
     copyfile(conc_file, txt_file)
     
     conc_table = readtable(txt_file); % last few rows are NaN values 
@@ -152,14 +152,20 @@ for i = (selpath) % loop through all folders (if multiple are chosen)
     
     % all other variables to include 
     % information from dicom header
+    cohort = char(split_path(6)); % useful for naming
+
     age_str = dicom.PatientAge;
     age = str2num(age_str(2:3)); % assuming format '0XXY'
     
     proj = dicom.PatientComments;
-    proj_name = proj(9:20);
-    
+    project = proj(14:16); % UMN or MGH
+    project_name = append(cohort, '_', project); 
+    Project_Name = {project_name};
+
+    Gender = {dicom.PatientSex};
+
     Patient_ID = ID;
-    
+
     % ages over 89 constitute as PHI
     if age > 89
         Age = {'90+'};
@@ -173,9 +179,6 @@ for i = (selpath) % loop through all folders (if multiple are chosen)
     else
        Category = {'Elderly'};
     end
-    Project_Name = {proj_name};
-    
-    Gender = {dicom.PatientSex};
     
     % information from .COORD file - FWHM and SNR
     % first, convert to .txt
@@ -184,29 +187,44 @@ for i = (selpath) % loop through all folders (if multiple are chosen)
     copyfile(coord_file, coord_txt_file)
     
     coord = fopen(coord_txt_file);
-    linenum = 37; % line where FWHM and SNR are located **USUALLY
-    line = textscan(coord, '%s', 1, 'delimiter', '\n', 'headerlines', linenum-1);
-    fclose('all');
-    
-    % extract values 
-    % making sure we have the correct line..there have been oddball cases 
-    if startsWith(char(line{1,1}), 'FWHM')
-        str_split = strsplit(char(line{1,1}), ' ');
-        FWHM = str_split(3);
-        SNR = str_split(7);
-    elseif startsWith(char(line{1,1}), 'Data')
-        coord = fopen(coord_txt_file);
-        linenum = 36; % line where FWHM and SNR are located in this case
-        line = textscan(coord, '%s', 1, 'delimiter', '\n', 'headerlines', linenum-1);
-        fclose('all');
-    
-        str_split = strsplit(char(line{1,1}), ' ');
-        FWHM = str_split(3);
-        SNR = str_split(7);
-    end 
+     linenum = 3; % line where FWHM and SNR are located **USUALLY
+     % so this actually depends on the control file used...
+     line = textscan(coord, '%s', 1, 'delimiter', '\n', 'headerlines', linenum-1);
+     fclose('all');
+
+     % extract values 
+     % making sure we have the correct line..there have been oddball cases 
+     if startsWith(char(line{1,1}), '32')
+         coord = fopen(coord_txt_file);
+         new_linenum = 37;
+         new_line = textscan(coord, '%s', 1, 'delimiter', '\n', 'headerlines', new_linenum-1);
+         fclose('all');
+
+         str_split = strsplit(char(new_line{1,1}), ' ');
+         FWHM = str_split(3);
+         SNR = str_split(7);
+     elseif startsWith(char(line{1,1}), '31')
+         coord = fopen(coord_txt_file);
+         new_linenum = 36; % line where FWHM and SNR are located in this case
+         new_line = textscan(coord, '%s', 1, 'delimiter', '\n', 'headerlines', new_linenum-1);
+         fclose('all');
+        
+         str_split = strsplit(char(new_line{1,1}), ' ');
+         FWHM = str_split(3);
+         SNR = str_split(7);
+     elseif startsWith(char(line{1,1}), '26')
+         coord = fopen(coord_txt_file);
+         new_linenum = 31; % line where FWHM and SNR are located in this case
+         new_line = textscan(coord, '%s', 1, 'delimiter', '\n', 'headerlines', new_linenum-1);
+         fclose('all');
+        
+         str_split = strsplit(char(new_line{1,1}), ' ');
+         FWHM = str_split(3);
+         SNR = str_split(7);
+     end 
     
     % put variables into table (row)
-    if exist('MacY', 'var') % young basis set used?
+    if exist('MacY', 'var') % young basis set used
         t = table(Patient_ID, Age, Gender, Category, Project_Name, FWHM, SNR, MacY, CRLB1, Asc, ...
         CRLB2, Asp, CRLB3, PCho, CRLB4, GPC, CRLB5, Cr, CRLB6, ...
         PCr, CRLB7, GABA, CRLB8, Glc, CRLB9, Gln, CRLB10, Glu, ...
@@ -215,7 +233,7 @@ for i = (selpath) % loop through all folders (if multiple are chosen)
         Sup, CRLB20, NAA_plus_NAAG, CRLB21, Glu_plus_Gln, CRLB22, GPC_plus_PCho, ...
         CRLB23, Cr_plus_PCr, CRLB24, Glc_plus_Tau, CRLB25, GPC_plus_PCho_plus_PE, ...
         CRLB26);
-    elseif exist('MacE', 'var') % elderly basis set used?
+    elseif exist('MacE', 'var') % elderly basis set used
         t = table(Patient_ID, Age, Gender, Category, Project_Name, FWHM, SNR, MacE, CRLB1, Asc, ...
         CRLB2, Asp, CRLB3, PCho, CRLB4, GPC, CRLB5, Cr, CRLB6, ...
         PCr, CRLB7, GABA, CRLB8, Glc, CRLB9, Gln, CRLB10, Glu, ...
@@ -228,8 +246,8 @@ for i = (selpath) % loop through all folders (if multiple are chosen)
     
     % convert table to .csv
     % directory to save spreadsheet
-    cd('/home/LabAst/Documents/SpectraProcessing/AABCProcessing')
-    spreadsheet_name = 'U19_spreadsheet.csv';
+    cd('/home/LabAst/Documents/AABCProcessing/')
+    spreadsheet_name = append(cohort, '_spreadsheet.csv');
     
     if ~exist(spreadsheet_name, 'file')
         % initial file generation 

@@ -49,7 +49,11 @@ proj_fold_name = append('0_Project_', proj_name);
 mkdir(proj_fold_name)
 
 % optional 
-% create a folder in processing directory for this subject
-% cd('/home/LabAst/Documents/SpectraProcessing/AABCProcessing') % my personal processing directory
-% ID = dicom.PatientID;
-% mkdir(ID)
+% create a folder in processing directories for this subject
+cd('/home/LabAst/Documents/AABCProcessing/S3_EMM_AABC1/') % EMM, control file #1
+ID = dicom.PatientID;
+mkdir(ID)
+
+cd('/home/LabAst/Documents/AABCProcessing/S3_YMM_AABC2/') % YMM, control file #2
+mkdir(ID)
+
