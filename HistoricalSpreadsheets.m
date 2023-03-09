@@ -14,10 +14,10 @@ for i = 3:length(files)-1 % don't need to look over extra/batch folder
     [filepath, name, ext] = fileparts(file_name);
     name_split = strsplit(name, '_'); % obtain ID from file name
 
-    % MN_Aging_AD and MN_BCP have differnt directory structure...
+    % S1 (MN_AD_Aging) and S2 (MN_BCP) have differnt directory structure...
     if strcmp(ext, '.conc') % check file extension 
-        if strcmp(char(split_selpath(6)), 'MN_Aging_AD') 
-            % how to obtain patient ID from MN_Aging_AD data:
+        if startsWith(split_selpath(6), 'S1') 
+            % how to obtain patient ID from S1 data:
             prefix = char(name_split(5)); % to disguish between AD, elderly, and young
             ID = char(name_split(6)); % index for ID number
             
@@ -41,8 +41,8 @@ for i = 3:length(files)-1 % don't need to look over extra/batch folder
                 end 
             end 
 
-        elseif strcmp(char(split_selpath(6)), 'MN_BCP')
-            % how to obtain patient ID from MN_BCP data:
+        elseif startsWith(split_selpath(6), 'S2')
+            % how to obtain patient ID from S2 data:
             
             % naming conventions between files vary quite a bit here...
             if length(name_split) == 15 
@@ -214,29 +214,29 @@ for i = 3:length(files)-1 % don't need to look over extra/batch folder
         cohort = char(split_selpath(7));
     
         % start with getting the right path
-        % for MN_Aging_AD data:
-        if strcmp(char(split_selpath(6)), 'MN_Aging_AD')
+        % for S1 data:
+        if startsWith(split_selpath(6), 'S1')
             if startsWith(cohort, 'AD') % aim 2
                if startsWith(Patient_ID, 'A') % AD participants
-                  newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_Aging_AD/aim2AD/';
+                  newpath = '/home/LabAst/Desktop/Historical_Data/S1_scanner_files/aim2AD/';
                else % controls
-                   newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_Aging_AD/aim2control/';
+                   newpath = '/home/LabAst/Desktop/Historical_Data/S1_scanner_files/aim2control/';
                end
             elseif startsWith(cohort, 'Aging') % aim 1
                 if startsWith(Patient_ID, 'E') % elderly
-                    newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_Aging_AD/aim1elderly/';
+                    newpath = '/home/LabAst/Desktop/Historical_Data/S1_scanner_files/aim1elderly/';
                 else % young
-                    newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_Aging_AD/aim1young/';
+                    newpath = '/home/LabAst/Desktop/Historical_Data/S1_scanner_files/aim1young/';
                 end 
             end 
         % for MN_BCP data    
-        elseif strcmp(char(split_selpath(6)), 'MN_BCP')
+        elseif startsWith(split_selpath(6), 'S2')
             if startsWith(cohort, 'BCP_O') % elderly
-                newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_BCP/Subjects_Elderly/';
+                newpath = '/home/LabAst/Desktop/Historical_Data/S2_scanner_files/Subjects_Elderly/';
             elseif startsWith(cohort, 'BCP_Y') % young
-                newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_BCP/Subjects_Young/';
+                newpath = '/home/LabAst/Desktop/Historical_Data/S2_scanner_files/Subjects_Young/';
             elseif startsWith(cohort, 'MN_') || startsWith(cohort, 'MO_')% AD
-                newpath = '/home/LabAst/Desktop/Data_4Thesis/MN_BCP/Subjects_AD/';
+                newpath = '/home/LabAst/Desktop/Historical_Data/S2_scanner_files/Subjects_AD/';
             end 
         end 
 
@@ -278,9 +278,10 @@ for i = 3:length(files)-1 % don't need to look over extra/batch folder
             end
             
             Gender = {dicom.PatientSex};
-        
-            project = append('MN_', cohort);
-            Project_Name = {project}; 
+            
+            project = append(char(split_selpath(6)), '_', cohort);
+            Project_Name = {project};
+
         else % folders that are empty (cannot access .dcm files)
             Age = {'NaN'};
             Category = {'NaN'};
@@ -345,7 +346,7 @@ for i = 3:length(files)-1 % don't need to look over extra/batch folder
     if ~exist('Patient_ID', 'var') % one of the first variables created when .conc file exists
         % do nothing if the file did not go thru loop 
     else
-        cd('/home/LabAst/Desktop/Data_4Thesis/')
+        cd('/home/LabAst/Desktop/Historical_Data/')
         spreadsheet_name = append(cohort, '_spreadsheet.csv');
     
         if ~exist(spreadsheet_name, 'file')
