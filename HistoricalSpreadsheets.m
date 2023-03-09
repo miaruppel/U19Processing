@@ -7,7 +7,6 @@ files = dir(selpath); % fist 'files' are again '.' and '..'
 split_selpath = strsplit(selpath, '/');
 
 % because directories are organized differently, different processes...
-% MN_Aging_AD data 
 
 for i = 3:length(files)-1 % don't need to look over extra/batch folder 
     file_name = files(i).name;
@@ -229,7 +228,7 @@ for i = 3:length(files)-1 % don't need to look over extra/batch folder
                     newpath = '/home/LabAst/Desktop/Historical_Data/S1_scanner_files/aim1young/';
                 end 
             end 
-        % for MN_BCP data    
+        % for S2 data    
         elseif startsWith(split_selpath(6), 'S2')
             if startsWith(cohort, 'BCP_O') % elderly
                 newpath = '/home/LabAst/Desktop/Historical_Data/S2_scanner_files/Subjects_Elderly/';
@@ -297,23 +296,38 @@ for i = 3:length(files)-1 % don't need to look over extra/batch folder
      copyfile(coord_file, coord_txt_file)
 
      coord = fopen(coord_txt_file);
-     linenum = 37; % line where FWHM and SNR are located **USUALLY
+     linenum = 3; % line where FWHM and SNR are located **USUALLY
+     % so this actually depends on the control file used...
      line = textscan(coord, '%s', 1, 'delimiter', '\n', 'headerlines', linenum-1);
      fclose('all');
 
      % extract values 
      % making sure we have the correct line..there have been oddball cases 
-     if startsWith(char(line{1,1}), 'FWHM')
-         str_split = strsplit(char(line{1,1}), ' ');
+     if startsWith(char(line{1,1}), '32')
+         coord = fopen(coord_txt_file);
+         new_linenum = 37;
+         new_line = textscan(coord, '%s', 1, 'delimiter', '\n', 'headerlines', new_linenum-1);
+         fclose('all');
+
+         str_split = strsplit(char(new_line{1,1}), ' ');
          FWHM = str_split(3);
          SNR = str_split(7);
-     elseif startsWith(char(line{1,1}), 'Data')
+     elseif startsWith(char(line{1,1}), '31')
          coord = fopen(coord_txt_file);
-         linenum = 36; % line where FWHM and SNR are located in this case
-         line = textscan(coord, '%s', 1, 'delimiter', '\n', 'headerlines', linenum-1);
+         new_linenum = 36; % line where FWHM and SNR are located in this case
+         new_line = textscan(coord, '%s', 1, 'delimiter', '\n', 'headerlines', new_linenum-1);
          fclose('all');
         
-         str_split = strsplit(char(line{1,1}), ' ');
+         str_split = strsplit(char(new_line{1,1}), ' ');
+         FWHM = str_split(3);
+         SNR = str_split(7);
+     elseif startsWith(char(line{1,1}), '26')
+         coord = fopen(coord_txt_file);
+         new_linenum = 31; % line where FWHM and SNR are located in this case
+         new_line = textscan(coord, '%s', 1, 'delimiter', '\n', 'headerlines', new_linenum-1);
+         fclose('all');
+        
+         str_split = strsplit(char(new_line{1,1}), ' ');
          FWHM = str_split(3);
          SNR = str_split(7);
      end  
@@ -321,21 +335,22 @@ for i = 3:length(files)-1 % don't need to look over extra/batch folder
     % convert str to cell for table function
     Patient_ID = {Patient_ID};
     % put variables into table (row)
-    if exist('MacY', 'var') % young basis set used?
+    if exist('MacY', 'var') % young basis set used
+        % no Sup variable in this case
         t = table(Patient_ID, Age, Gender, Category, Project_Name, FWHM, SNR, MacY, CRLB1, Asc, ...
         CRLB2, Asp, CRLB3, PCho, CRLB4, GPC, CRLB5, Cr, CRLB6, ...
         PCr, CRLB7, GABA, CRLB8, Glc, CRLB9, Gln, CRLB10, Glu, ...
         CRLB11, GSH, CRLB12, Ins, CRLB13, Lac, CRLB14, NAA, ...
-        CRLB15, NAAG, CRLB16, PE, CRLB17, sIns, CRLB18, Tau, CRLB10, ...
-        Sup, CRLB20, NAA_plus_NAAG, CRLB21, Glu_plus_Gln, CRLB22, GPC_plus_PCho, ...
+        CRLB15, NAAG, CRLB16, PE, CRLB17, sIns, CRLB18, Tau, CRLB19, ...
+        NAA_plus_NAAG, CRLB21, Glu_plus_Gln, CRLB22, GPC_plus_PCho, ...
         CRLB23, Cr_plus_PCr, CRLB24, Glc_plus_Tau, CRLB25, GPC_plus_PCho_plus_PE, ...
         CRLB26);
-    elseif exist('MacE', 'var') % elderly basis set used?
+    elseif exist('MacE', 'var') % elderly basis set used
         t = table(Patient_ID, Age, Gender, Category, Project_Name, FWHM, SNR, MacE, CRLB1, Asc, ...
         CRLB2, Asp, CRLB3, PCho, CRLB4, GPC, CRLB5, Cr, CRLB6, ...
         PCr, CRLB7, GABA, CRLB8, Glc, CRLB9, Gln, CRLB10, Glu, ...
         CRLB11, GSH, CRLB12, Ins, CRLB13, Lac, CRLB14, NAA, ...
-        CRLB15, NAAG, CRLB16, PE, CRLB17, sIns, CRLB18, Tau, CRLB10, ...
+        CRLB15, NAAG, CRLB16, PE, CRLB17, sIns, CRLB18, Tau, CRLB19, ...
         Sup, CRLB20, NAA_plus_NAAG, CRLB21, Glu_plus_Gln, CRLB22, GPC_plus_PCho, ...
         CRLB23, Cr_plus_PCr, CRLB24, Glc_plus_Tau, CRLB25, GPC_plus_PCho_plus_PE, ...
         CRLB26);
@@ -360,5 +375,3 @@ for i = 3:length(files)-1 % don't need to look over extra/batch folder
     end 
     end 
 end 
-
-
