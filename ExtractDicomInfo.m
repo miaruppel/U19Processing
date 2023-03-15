@@ -1,5 +1,5 @@
 % Extracting DICOM Info
-% renaming numbered folders and adding folders with project name and
+% renaming numbered folders, adding folders with project name and
 % patient age
 
 % choose directory '.../SCANS'
@@ -50,10 +50,24 @@ mkdir(proj_fold_name)
 
 % optional 
 % create a folder in processing directories for this subject
-cd('/home/LabAst/Documents/AABCProcessing/S3_EMM_AABC1/') % EMM, control file #1
 ID = dicom.PatientID;
-mkdir(ID)
+
+cd('/home/LabAst/Documents/AABCProcessing/S3_EMM_AABC1/') % EMM, control file #1
+% extra directories for separating young and old participants 
+if age < 60 % younger
+   cd('/home/LabAst/Documents/AABCProcessing/S3_EMM_AABC1/Young/')
+   mkdir(ID)
+else % older 
+   cd('/home/LabAst/Documents/AABCProcessing/S3_EMM_AABC1/Elderly/')
+   mkdir(ID)
+end 
 
 cd('/home/LabAst/Documents/AABCProcessing/S3_YMM_AABC2/') % YMM, control file #2
-mkdir(ID)
-
+% extra directories for separating young and old participants 
+if age < 60 % younger
+   cd('/home/LabAst/Documents/AABCProcessing/S3_YMM_AABC2/Young/')
+   mkdir(ID)
+else % older 
+   cd('/home/LabAst/Documents/AABCProcessing/S3_YMM_AABC2/Elderly/')
+   mkdir(ID)
+end 
