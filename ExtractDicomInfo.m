@@ -18,9 +18,20 @@ for i = 3:length(fold) % starting at 3 due to "." and ".."
     % function to get dicom information 
     dicom = checkDICOM(subpath);
     descript = dicom.SeriesDescription; % protocol description
-
     if strcmp(descript, 'localizer at center') % only description with spaces
        descript = 'localizer_at_center'; % remove spaces 
+    end 
+    % participant ID
+    ID = dicom.PatientID;
+
+    % renaming secondary/DICOM folders to ID names 
+    % eliminates the need to type IDs out when saving spa files later on 
+    rename_path = append(selpath, '/', name);
+    cd(rename_path)
+    if endsWith(subpath, 'DICOM')
+        movefile('DICOM', num2str(ID))
+    elseif endsWith(subpath, 'secondary')
+        movefile('secondary', num2str(ID))
     end 
 
     appended = append(fold(i).name, '_', descript);
@@ -50,10 +61,20 @@ mkdir(proj_fold_name)
 
 % optional 
 % create a folder in processing directories for this subject
-cd('/home/LabAst/Documents/AABCProcessing/S3_EMM_AABC1/') % EMM, control file #1
-ID = dicom.PatientID;
-mkdir(ID)
+S3_EMM_AABC1_path = '/home/labast/Documents/AABCProcessing/S3_EMM_AABC1/'; % EMM, control file #1
+cd(S3_EMM_AABC1_path)
+dir_name = append(S3_EMM_AABC1_path, '/', num2str(ID));
+if ~exist(dir_name, 'dir')
+    mkdir(ID)
+end 
 
-cd('/home/LabAst/Documents/AABCProcessing/S3_YMM_AABC2/') % YMM, control file #2
-mkdir(ID)
+S3_YMM_AABC2_path = '/home/labast/Documents/AABCProcessing/S3_YMM_AABC2/'; % YMM, control file #2
+cd(S3_YMM_AABC2_path) 
+dir_name = append(S3_YMM_AABC2_path, '/', num2str(ID));
+if ~exist(dir_name, 'dir')
+    mkdir(ID)
+end 
+
+% back to main scan folders directory 
+cd(selpath)
 

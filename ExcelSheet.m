@@ -12,9 +12,9 @@ for i = (selpath) % loop through all folders (if multiple are chosen)
     split_path = split(path, '/');
     ID = split_path(end); % extract ID from path 
     
-    dicom_path = append('/home/LabAst/Documents/AABCProcessing/S3_scanner_files/', char(ID), '/SCANS/1_localizer/DICOM');
+    dicom_path = append('/home/labast/Documents/AABCProcessing/S3_scanner_files/', char(ID), '/SCANS/1_localizer/DICOM');
     if ~exist(dicom_path, 'dir')
-        dicom_path = append('/home/LabAst/Documents/AABCProcessing/S3_scanner_files/', char(ID), '/SCANS/1_localizer/secondary');
+        dicom_path = append('/home/labast/Documents/AABCProcessing/S3_scanner_files/', char(ID), '/SCANS/1_localizer/secondary');
     end 
     dicom = checkDICOM(dicom_path);
     
@@ -28,7 +28,7 @@ for i = (selpath) % loop through all folders (if multiple are chosen)
     conc_table = readtable(txt_file); % last few rows are NaN values 
     
     % to get all metabolites 
-    for i = 1:30 % loop through all 30 (non-NaN) rows
+    for i = 1:31 % loop through all 30 (non-NaN) rows
         metab_tab = conc_table(i, 4); % metabolites are always in the 4th column 
         metab_cell = table2cell(metab_tab); % convert to cell format
         
@@ -147,6 +147,27 @@ for i = (selpath) % loop through all folders (if multiple are chosen)
         elseif strcmpi(metab_cell, {'GPC+PCho+PE'})
             GPC_plus_PCho_plus_PE = relat_conc;
             CRLB26 = SD;
+
+        elseif strcmpi(metab_cell, {'Lip13a'})
+            Lip13a = relat_conc;
+            CRLB27 = SD;
+
+        elseif strcmpi(metab_cell, {'Lip13b'})
+            Lip13b = relat_conc;
+            CRLB28 = SD;
+
+        elseif strcmpi(metab_cell, {'Lip09'})
+            Lip09 = relat_conc;
+            CRLB29 = SD;
+
+        elseif strcmpi(metab_cell, {'Lip14'})
+            Lip14 = relat_conc;
+            CRLB30 = SD;
+
+        elseif strcmpi(metab_cell, {'Lip12n'})
+            Lip12n = relat_conc;
+            CRLB31 = SD;
+
         end
     end 
     
@@ -224,7 +245,25 @@ for i = (selpath) % loop through all folders (if multiple are chosen)
      end 
     
     % put variables into table (row)
-    if exist('MacY', 'var') % young basis set used
+    if exist('MacY', 'var') && exist('Lip12n', 'var') % young basis set & control file 1 (AABC1)
+        t = table(Patient_ID, Age, Gender, Category, Project_Name, FWHM, SNR, MacY, CRLB1, Asc, ...
+        CRLB2, Asp, CRLB3, PCho, CRLB4, GPC, CRLB5, Cr, CRLB6, ...
+        PCr, CRLB7, GABA, CRLB8, Glc, CRLB9, Gln, CRLB10, Glu, ...
+        CRLB11, GSH, CRLB12, Ins, CRLB13, Lac, CRLB14, NAA, ...
+        CRLB15, NAAG, CRLB16, PE, CRLB17, sIns, CRLB18, Tau, CRLB10, ...
+        Sup, CRLB20, NAA_plus_NAAG, CRLB21, Glu_plus_Gln, CRLB22, GPC_plus_PCho, ...
+        CRLB23, Cr_plus_PCr, CRLB24, Glc_plus_Tau, CRLB25, GPC_plus_PCho_plus_PE, ...
+        CRLB26, Lip13a, CRLB27, Lip13b, CRLB28, Lip09, CRLB29, Lip14, CRLB30, Lip12n, CRLB31);
+    elseif exist('MacE', 'var') && exist('Lip12n', 'var') % elderly basis set & control file 1 (AABC1)
+        t = table(Patient_ID, Age, Gender, Category, Project_Name, FWHM, SNR, MacE, CRLB1, Asc, ...
+        CRLB2, Asp, CRLB3, PCho, CRLB4, GPC, CRLB5, Cr, CRLB6, ...
+        PCr, CRLB7, GABA, CRLB8, Glc, CRLB9, Gln, CRLB10, Glu, ...
+        CRLB11, GSH, CRLB12, Ins, CRLB13, Lac, CRLB14, NAA, ...
+        CRLB15, NAAG, CRLB16, PE, CRLB17, sIns, CRLB18, Tau, CRLB10, ...
+        Sup, CRLB20, NAA_plus_NAAG, CRLB21, Glu_plus_Gln, CRLB22, GPC_plus_PCho, ...
+        CRLB23, Cr_plus_PCr, CRLB24, Glc_plus_Tau, CRLB25, GPC_plus_PCho_plus_PE, ...
+        CRLB26, Lip13a, CRLB27, Lip13b, CRLB28, Lip09, CRLB29, Lip14, CRLB30, Lip12n, CRLB31);
+    elseif exist('MacY', 'var') % young basis set & control file 2 (AABC2)
         t = table(Patient_ID, Age, Gender, Category, Project_Name, FWHM, SNR, MacY, CRLB1, Asc, ...
         CRLB2, Asp, CRLB3, PCho, CRLB4, GPC, CRLB5, Cr, CRLB6, ...
         PCr, CRLB7, GABA, CRLB8, Glc, CRLB9, Gln, CRLB10, Glu, ...
@@ -233,7 +272,7 @@ for i = (selpath) % loop through all folders (if multiple are chosen)
         Sup, CRLB20, NAA_plus_NAAG, CRLB21, Glu_plus_Gln, CRLB22, GPC_plus_PCho, ...
         CRLB23, Cr_plus_PCr, CRLB24, Glc_plus_Tau, CRLB25, GPC_plus_PCho_plus_PE, ...
         CRLB26);
-    elseif exist('MacE', 'var') % elderly basis set used
+    elseif exist('MacE', 'var') % elderly basis set & control file 2 (AABC2)
         t = table(Patient_ID, Age, Gender, Category, Project_Name, FWHM, SNR, MacE, CRLB1, Asc, ...
         CRLB2, Asp, CRLB3, PCho, CRLB4, GPC, CRLB5, Cr, CRLB6, ...
         PCr, CRLB7, GABA, CRLB8, Glc, CRLB9, Gln, CRLB10, Glu, ...
@@ -246,7 +285,7 @@ for i = (selpath) % loop through all folders (if multiple are chosen)
     
     % convert table to .csv
     % directory to save spreadsheet
-    cd('/home/LabAst/Documents/AABCProcessing/')
+    cd('/home/labast/Documents/AABCProcessing/')
     spreadsheet_name = append(cohort, '_spreadsheet.csv');
     
     if ~exist(spreadsheet_name, 'file')
