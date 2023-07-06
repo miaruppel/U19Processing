@@ -1,9 +1,17 @@
-% Final draft - running spreadsheet script 
-% to be run after LCModel / MRSpa
-% need MRSpa/LCModel output files to complete the spreadsheet 
+% Running U19 spreadsheet script 
+% To be run after LCModel / MRSpa
+% Need MRSpa/LCModel output files to complete the spreadsheet 
+% NOTE: concentrations in this spreadsheet are all creatine normalized values 
+
+% code is specific to a select directory strcuture 
+% directory structure is as follows:
+    % main U19 folder - "AABCProcessing"
+        % folder containing all scanner files (directly from IntraDB) - "S3_scanner_files"
+        % folder for LCModel outputs, seperated by experiment (different MM and basis sets used) - "S3_EMM_AABC1" 'S3_EMM_AABC2" "S3_YMM_AABC2" "S3_YMM_AABC1"
+            % within this directory, each participant has their own folder of outputs and these folders are labeled by ID (ex. HCA1234578_V2_7T_
 
 % choose LCModel ouput directory 
-selpath = uipickfiles;
+selpath = uipickfiles; % can pick which ID folders to include, intended to be a running spreadsheet (add new data each time)
 
 for i = (selpath) % loop through all folders (if multiple are chosen)
     path = char(i);
@@ -43,6 +51,7 @@ for i = (selpath) % loop through all folders (if multiple are chosen)
         SD = table2cell(perc_SD);
         
         % cell comparisons to assign values 
+        % keep in mind: what variables exist may depend on the exact control files used 
         if strcmpi(metab_cell, {'MacY'})
             MacY = relat_conc;
             CRLB1 = SD;
@@ -248,6 +257,7 @@ for i = (selpath) % loop through all folders (if multiple are chosen)
      end 
     
     % put variables into table (row)
+    % keep in mind: what variables exist may depend on the exact control files used 
     if exist('MacY', 'var') && exist('Lip12n', 'var') % young basis set & control file 1 (AABC1)
         t = table(Patient_ID, Age, Gender, Category, Project_Name, FWHM, SNR, MacY, CRLB1, Asc, ...
         CRLB2, Asp, CRLB3, PCho, CRLB4, GPC, CRLB5, Cr, CRLB6, ...
@@ -287,7 +297,7 @@ for i = (selpath) % loop through all folders (if multiple are chosen)
     end 
     
     % convert table to .csv
-    % directory to save spreadsheet
+    % MY local directory to save spreadsheet
     cd('/home/labast/Documents/AABCProcessing/')
     spreadsheet_name = append(cohort, '_spreadsheet.csv');
     
